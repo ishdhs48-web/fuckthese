@@ -1,0 +1,348 @@
+// ============================================================================
+// STANDOFF 2 (il2cpp) - COMPLETE CHEAT & HOST CONTROL REFERENCE SHEET
+// ============================================================================
+
+// ==========================================
+// 1. ENTITY LIST (ESP CORE)
+// ==========================================
+// PlayerManager : LazySingleton<PlayerManager>
+namespace EntityList {
+    constexpr uintptr_t ViewIdToControllerMap = 0x28; // Dictionary<int, PlayerController> ACHDCBAEFACDCEE
+    constexpr uintptr_t AllPlayersHashSet    = 0x38; // HashSet<PlayerController> BBFEFFBGDEBDEBB
+    constexpr uintptr_t LocalPlayer          = 0x68; // PlayerController CFCHCBFEEFHBAEH
+    constexpr uintptr_t LocalPlayerAlt       = 0x70; // PlayerController EGAHBFAFFCBCEDF
+
+    // Property: GAGAHDGCEBDGBAG -> HashSet<PlayerController> (Use this for ESP loop)
+    // Method:   HECEABBAAFBHHGG() -> Returns HashSet<PlayerController> (Getter)
+    // Method:   FGAGDACDDEFBBBB(int viewId) -> Returns PlayerController by ViewID
+}
+
+// ==========================================
+// 2. PLAYERCONTROLLER OFFSETS
+// ==========================================
+// PlayerController : PunBehaviour
+namespace PlayerController {
+    constexpr uintptr_t MaxCtHealth          = 0x08;  // static int
+    constexpr uintptr_t MaxCtArmor           = 0x0C;  // static int
+    constexpr uintptr_t MaxTrHealth          = 0x10;  // static int
+    constexpr uintptr_t MaxTrArmor           = 0x14;  // static int
+    constexpr uintptr_t MainCameraHolder      = 0x28;  // Transform
+    constexpr uintptr_t AimController        = 0x80;  // AimController (backing field)
+    constexpr uintptr_t WeaponryController   = 0x88;  // WeaponryController
+    constexpr uintptr_t MovementController   = 0x98;  // MovementController
+    constexpr uintptr_t PlayerHitController  = 0xA8;  // PlayerHitController
+    constexpr uintptr_t NetworkController    = 0xC0;  // NetworkController
+    constexpr uintptr_t CharacterController1 = 0x108; // CharacterController CCFHEEFGBDDFFDC
+    constexpr uintptr_t CharacterController2 = 0x118; // CharacterController (movement)
+    constexpr uintptr_t PhotonView           = 0x150; // PhotonView (backing field)
+    constexpr uintptr_t TeamOrSlotID1        = 0x158; // int FACDFFBDHEBHAFG
+    constexpr uintptr_t TeamOrSlotID2        = 0x15C; // int FFHFDHGFFDGFBBB
+    constexpr uintptr_t PhotonPlayerOwner     = 0x160; // PhotonPlayer (owner)
+    constexpr uintptr_t PlayerCharacterView  = 0xD0;  // 3P Model (HBHHEGDHGDHFHCD)
+    constexpr uintptr_t PlayerMainCamera     = 0xE8;  // PlayerMainCamera
+    constexpr uintptr_t PlayerFPSCamera      = 0xF0;  // PlayerFPSCamera
+
+    // Property: CDCGGGHBBEFHEGA -> Accesses BipedMap via PlayerCharacterView (0xD0)
+}
+
+// ==========================================
+// 3. BIPEDMAP - SKELETON (ESP BONES & AIMBOT)
+// ==========================================
+// BipedMap : MonoBehaviour
+namespace BipedMap {
+    constexpr uintptr_t Head          = 0x20;  // Transform (Aimbot Primary Target)
+    constexpr uintptr_t Neck          = 0x28;  // Transform
+    constexpr uintptr_t Spine         = 0x30;  // Transform
+    constexpr uintptr_t Spine1        = 0x38;  // Transform
+    constexpr uintptr_t Spine2        = 0x40;  // Transform
+    constexpr uintptr_t LeftShoulder  = 0x48;  // Transform
+    constexpr uintptr_t LeftUpperarm  = 0x50;  // Transform
+    constexpr uintptr_t LeftForearm   = 0x58;  // Transform
+    constexpr uintptr_t LeftHand      = 0x60;  // Transform
+    constexpr uintptr_t RightShoulder = 0x68;  // Transform
+    constexpr uintptr_t RightUpperarm = 0x70;  // Transform
+    constexpr uintptr_t RightForearm  = 0x78;  // Transform
+    constexpr uintptr_t RightHand     = 0x80;  // Transform
+    constexpr uintptr_t Hip           = 0x88;  // Transform
+    constexpr uintptr_t LeftUpLeg     = 0x90;  // Transform
+    constexpr uintptr_t LeftLeg       = 0x98;  // Transform
+    constexpr uintptr_t LeftFoot      = 0xA0;  // Transform
+    constexpr uintptr_t RightUpLeg    = 0xB0;  // Transform
+    constexpr uintptr_t RightLeg      = 0xB8;  // Transform
+    constexpr uintptr_t RightFoot     = 0xC0;  // Transform
+    constexpr uintptr_t WeaponContainer = 0x250; // Transform
+
+    /*
+    Bone Hierarchy Names (for FindChild lookups):
+    Head   -> "BipBase Head"
+    Pelvis -> "BipBase Pelvis"
+    LThigh -> "BipBase L Thigh"
+    RThigh -> "BipBase R Thigh"
+    LCalf  -> "BipBase L Calf"
+    RCalf  -> "BipBase R Calf"
+    LFoot  -> "BipBase L Foot"
+    RFoot  -> "BipBase R Foot"
+    Neck   -> "BipBase Neck1"
+    Spine1 -> "BipBase Spine1"
+    */
+}
+
+// ==========================================
+// 4. TEAM IDENTIFICATION
+// ==========================================
+enum class EBBFAFBCBFGDGGE : uint8_t {
+    None      = 0,
+    Tr        = 1, // Terrorist
+    Ct        = 2, // Counter-Terrorist
+    Spectator = 3
+};
+// Access: PlayerController -> NetworkController (0xC0) -> BHAHFFGGHDECFCA(EBBFAFBCBFGDGGE p)
+// PhotonPlayer CustomProperties keys (via helper class HBHABHCEAHGHHDC):
+// "health", "armor", "isDeath"
+
+// ==========================================
+// 5. HEALTH, ARMOR & HITBOXES
+// ==========================================
+namespace Combat {
+    // GameModeSettings (Parent config for PlayerHitController)
+    constexpr uintptr_t BaseHealth = 0x30; // int
+    constexpr uintptr_t BaseArmor  = 0x34; // int
+
+    // HitController (Base class of PlayerHitController)
+    constexpr uintptr_t HitboxConfigDict = 0x58; // PlayerHitboxConfig
+    constexpr uintptr_t HitboxMap        = 0x60; // Dictionary<Bip, PlayerHitbox>
+    constexpr uintptr_t PlayerController = 0x70; // MonoBehaviourRef<PlayerController>
+
+    // PlayerHitboxConfig.HitboxConfig layout
+    constexpr uintptr_t Hitbox_Bone       = 0x10; // Bip (enum)
+    constexpr uintptr_t Hitbox_Type       = 0x14; // int
+    constexpr uintptr_t Hitbox_Center     = 0x18; // Vector3
+    constexpr uintptr_t Hitbox_Size       = 0x24; // Vector3
+    constexpr uintptr_t Hitbox_Radius     = 0x34; // float
+    constexpr uintptr_t Hitbox_Height     = 0x38; // float
+}
+
+// ==========================================
+// 6. WEAPON & AMMUNITION DATA
+// ==========================================
+// GunController : WeaponController
+namespace GunController {
+    constexpr uintptr_t FireRateSafe      = 0x108; // SafeFloat CHBGCADAEGDBFDC
+    constexpr uintptr_t CurrentAmmoInt    = 0x118; // int GHGHCFCBEECFDDC
+    constexpr uintptr_t MagAmmoSafe       = 0x120; // SafeInt GCGGGBHBEBBBHGA
+    constexpr uintptr_t TotalAmmoSafe     = 0x128; // SafeInt DGAHCGDGEEGFDHE
+    constexpr uintptr_t Parameters        = 0x168; // GunParameters
+    constexpr uintptr_t WeaponFloat1      = 0x178; // float
+    constexpr uintptr_t WeaponFloat2      = 0x17C; // float
+}
+
+// GunParameters : WeaponParameters
+namespace GunParameters {
+    constexpr uintptr_t DamageStruct      = 0x140; // Damage
+    constexpr uintptr_t HitRange          = 0x148; // float
+    constexpr uintptr_t FireRate          = 0x14C; // int
+    constexpr uintptr_t RecoilControl      = 0x150; // int
+    constexpr uintptr_t RecoilParams      = 0x158; // RecoilParameters
+    constexpr uintptr_t ArmorPenetration   = 0x1A0; // float
+    constexpr uintptr_t PenetrationPower   = 0x1A4; // int
+    constexpr uintptr_t ReloadDuration    = 0x1A8; // float
+    constexpr uintptr_t TacReloadDuration = 0x1AC; // float
+}
+
+namespace WeaponSubStructs {
+    constexpr uintptr_t HeadDamage         = 0x10; // int
+    constexpr uintptr_t ChestAndArmsDamage = 0x14; // int
+    constexpr uintptr_t StomachDamage      = 0x18; // int
+    constexpr uintptr_t LegsDamage         = 0x1C; // int
+    constexpr uintptr_t DistanceDamageMult = 0x20; // AnimationCurve
+
+    constexpr uintptr_t MagCapacity        = 0x10; // short
+    constexpr uintptr_t TotalCapacity      = 0x12; // short
+
+    constexpr uintptr_t HorizontalRange    = 0x10; // float
+    constexpr uintptr_t VerticalRange      = 0x14; // float
+    constexpr uintptr_t CamDeviationCoeff  = 0x48; // float
+    constexpr uintptr_t RecoilAccelDuration= 0x50; // float
+    constexpr uintptr_t ProgressFillingShots=0x60; // int
+}
+
+// ==========================================
+// 7. MOVEMENT & SPEED HACK
+// ==========================================
+namespace Movement {
+    constexpr uintptr_t TranslationParams  = 0xA8; // PlayerTranslationParameters
+    constexpr uintptr_t CharacterTransform  = 0xC0; // Transform
+
+    constexpr uintptr_t SpeedDefault        = 0x10; // float (Target for Speedhack)
+    constexpr uintptr_t MoveDirChangeSpeed  = 0x2C; // float
+    constexpr uintptr_t AnimDirChangeSpeed  = 0x30; // float
+    constexpr uintptr_t WalkParams          = 0x38; // WalkParameters
+    constexpr uintptr_t CrouchParams        = 0x48; // CrouchParameters
+    constexpr uintptr_t JumpParams          = 0x50; // JumpParameters
+    // Property SpeedDefault -> SafeFloat wrapper (RVA: 0x8EB0824)
+}
+
+// ==========================================
+// 8. CAMERA & WORLD-TO-SCREEN
+// ==========================================
+namespace CameraData {
+    constexpr uintptr_t Instance            = 0x00; // static PlayerMainCamera ADECGGBCAEEGFDF
+    constexpr uintptr_t CameraComponent     = 0x20; // Camera EHHBAADCHABFCGH
+    constexpr uintptr_t CameraTransform     = 0x38; // Transform FFACFFFCBGBDHDA
+
+    // Static Getter: HEDFFEFABFAABDB() -> Returns PlayerMainCamera instance
+    // Camera Getter: DDFBDEHDDBGBAHF() -> Returns Camera component
+    // WorldToScreenPoint RVA: 0x526789 (UnityEngine.CoreModule)
+}
+
+// ==========================================
+// 9. GAME STATE & MANAGERS
+// ==========================================
+namespace GameState {
+    constexpr uintptr_t CachedPlayersFullName = 0x28;  // IDictionary<string, string>
+    constexpr uintptr_t CachedPlayersNickName = 0x30;  // IDictionary<string, string>
+    constexpr uintptr_t LocalPlayerRef        = 0x2C0; // PlayerController DHCHHHDFFHCEDHG
+    constexpr uintptr_t Settings              = 0xD0;  // GameModeSettings
+
+    // GameManager (PunBehaviour)
+    // Instance Offset: 0x18 (AGGFBGGCCGHHBAF)
+    constexpr uintptr_t ActiveGameController  = 0x60;  // GameController FFHCDBHHEGGHHBC
+}
+
+// ==========================================
+// 10. HOST CONTROL — AUTOMATIC WIN & MATCH STATE
+// ==========================================
+
+// Room CustomProperties Property Keys (Read/Write via Class FDEDEBEHFDDCEEC)
+namespace RoomPropertyKeys {
+    constexpr const char* TrScore         = "TrScore";         // TR Round Wins
+    constexpr const char* CtScore         = "CtScore";         // CT Round Wins
+    constexpr const char* TrSideScore     = "TrSideScore";     // TR Side Score
+    constexpr const char* CtSideScore     = "CtSideScore";     // CT Side Score
+    constexpr const char* FinalWinTeam    = "FinalWinTeam";    // Final Match Winner (1 = TR, 2 = CT)
+    constexpr const char* WinTeam         = "WinTeam";         // Current Round Winner
+    constexpr const char* WinPlayers      = "WinPlayers";      // Array of winning PhotonPlayers
+    constexpr const char* FinalPlayers    = "FinalPlayers";    // Array of final match players
+    constexpr const char* MvpPlayer       = "MvpPlayer";       // MVP PhotonPlayer
+    constexpr const char* RoundCount      = "round_count";     // Current Round Number
+    constexpr const char* Round           = "Round";           // Round Identifier
+    constexpr const char* RoundStartTime  = "RoundStartTime";  // Round Start Timestamp
+    constexpr const char* Score           = "Score";           // Match Score
+    constexpr const char* SwappedTeam     = "swapped_team";    // Team Swap Flag
+    constexpr const char* TrTeamCount     = "TrTeamCount";     // TR Player Count
+    constexpr const char* CtTeamCount     = "CtTeamCount";     // CT Player Count
+    constexpr const char* TrMaxMoney      = "TrMaxMoney";      // TR Team Max Money
+    constexpr const char* CtMaxMoney      = "CtMaxMoney";      // CT Team Max Money
+    constexpr const char* BomberId        = "bomberId";        // Bomb Carrier/Planter ViewID
+}
+
+// Key Method RVAs for FDEDEBEHFDDCEEC (Room Property Helper Class)
+namespace RoomPropertyMethods {
+    constexpr uintptr_t ReadTeamScore   = 0x8E296C4; // DGGFGHFDADEAGGF(Room, Team) -> int
+    constexpr uintptr_t WriteTeamScore  = 0x8E29598; // BBDACBAEDGHGHCG(Room, Team, Score)
+    constexpr uintptr_t ReadSideScore   = 0x8E31618; // FFAEABGDEFDEGBB(Room, Team) -> int
+    constexpr uintptr_t SetHashtableScore= 0x8E3BCD0; // GHCGHHFCFFHBBHG(Hashtable, Team, Score)
+    constexpr uintptr_t SetWinTeam     = 0x8E2C034; // CGFHEBEFHCECCCF(Hashtable, WinTeam)
+    constexpr uintptr_t SetWinPlayers  = 0x8E317C4; // BDEEEDAAHCECHGF(Hashtable, PhotonPlayer[])
+    constexpr uintptr_t ReadWinPlayers = 0x8E24E08; // CECGCBEHEAADBHB(Room) -> PhotonPlayer[]
+    constexpr uintptr_t SetMvpPlayer   = 0x8E20A48; // CBDEFHCCBADEDBG(Hashtable, PhotonPlayer)
+    constexpr uintptr_t ReadRoundNumber= 0x8E26C24; // GDGEBFCBDGAGHCC(Room) -> int
+}
+
+// GameController Events & Auto-Win Methods
+namespace HostAutomation {
+    // GameController (Abstract, Static Instance Getter: AHEADDGADFHFEEE() at RVA: 0x8E14B4C)
+    constexpr uintptr_t GameFinishedEvent     = 0x50; // Trigger for Instant Win Event
+    constexpr uintptr_t GameStateChangedEvent = 0x58; // Trigger State Transition
+    constexpr uintptr_t PlayerWasKilledEvent  = 0x60; // Player Kill Event Dispatcher
+
+    // DefuseController Mode Offsets (Inherits GameController)
+    namespace DefuseController {
+        constexpr uintptr_t StartingTime          = 0x2D8; // Start Timer (seconds)
+        constexpr uintptr_t RoundEndingTime       = 0x2E4; // Remaining Round Time
+        constexpr uintptr_t StatisticsTime        = 0x2EC; // Stats Display Duration
+        constexpr uintptr_t WinTeamReward         = 0x320; // Win Money Reward
+        constexpr uintptr_t WinTeamRewardBomb     = 0x330; // Bomb Win Reward
+        constexpr uintptr_t LossReward            = 0x348; // Loss Money Reward
+        constexpr uintptr_t ConsecutiveLossReward = 0x358; // Consecutive Loss Bonus
+        constexpr uintptr_t BombPlantReward       = 0x378; // Individual Plant Reward
+        constexpr uintptr_t BombPlantTeamReward   = 0x388; // Team Plant Reward
+        constexpr uintptr_t BombDefusedReward     = 0x398; // Defuse Reward
+        constexpr uintptr_t BombPlantPoints       = 0x3C8; // Score Points for Planting
+        constexpr uintptr_t BombExplodesPoints    = 0x3D8; // Score Points for Detonation
+        constexpr uintptr_t DefusingBombPoints    = 0x3E8; // Score Points for Defusing
+        constexpr uintptr_t BombParametersRef     = 0x480; // BombParameters Backing Field
+    }
+
+    // BombParameters Offsets (Timer / Instant Defuse / Instant Plant)
+    namespace BombParameters {
+        constexpr uintptr_t PlantDuration          = 0x110; // float (Set to 0.0f for Instant Plant)
+        constexpr uintptr_t DetonationDuration     = 0x114; // float (Set to 0.0f for Instant Explosion)
+        constexpr uintptr_t DamageRadius           = 0x118; // float
+        constexpr uintptr_t Damage                 = 0x11C; // float
+        constexpr uintptr_t TakeDuration           = 0x120; // float
+        
+        // Internal Encoded Obfuscated Types (Actual Read Targets)
+        constexpr uintptr_t PlantDurationSafe      = 0x14C; // Nullable<SafeFloat>
+        constexpr uintptr_t DetonationDurationSafe = 0x158; // Nullable<SafeFloat>
+    }
+
+    // PlantedBombController Offsets & Methods (GameObject Name: "Bomb")
+    namespace PlantedBomb {
+        constexpr uintptr_t CountdownInternal      = 0x48;  // float
+        constexpr uintptr_t CountdownSafe          = 0xA8;  // SafeFloat
+        constexpr uintptr_t IsPlanted              = 0xB0;  // bool
+        constexpr uintptr_t IsDefused              = 0xB1;  // bool
+        constexpr uintptr_t IsExploded             = 0xB2;  // bool
+        constexpr uintptr_t TimerSafe              = 0xB4;  // SafeFloat (Write ~0.0001f for Instant Win)
+
+        // Key Methods
+        constexpr uintptr_t InitBombTimer RVA      = 0x8DEC3D8; // CHFAGHGDHHEBDCB(Vector3 pos, float timer, Action cb)
+        constexpr uintptr_t SetTimerDirect RVA      = 0x8DE4C50; // CBHBHHHHABCHGCA(SafeFloat timer)
+        constexpr uintptr_t TriggerExplosion RVA    = 0x8DF09FC; // HBAAFDAHBEFBBGC()
+        constexpr uintptr_t TriggerDefuse RVA       = 0x8DF7FBC; // GAHEDDFEAGBFGBA()
+        constexpr uintptr_t CompleteDefuseRPC RVA   = 0x8DF8F84; // DECHABFEBDBGCFE(PhotonPlayer defuser)
+    }
+
+    // GameModeSettings Offsets (GameController[0xD0] or CADFEDCGAEGEDBC() at RVA: 0x8E0CFDC)
+    namespace GameModeSettings {
+        constexpr uintptr_t WarmUpTime             = 0x14; // int
+        constexpr uintptr_t RespawnTime            = 0x18; // float (Deathmatch Respawn Delay)
+        constexpr uintptr_t MatchTime              = 0x1C; // int (Total Match Duration in Seconds)
+        constexpr uintptr_t RoundStartingTime      = 0x20; // int (Round Start Countdown)
+        constexpr uintptr_t RoundTime              = 0x24; // int (Round Time Limit)
+        constexpr uintptr_t KillsWinCondition      = 0x2C; // int (Target Kills for TDM Win)
+        constexpr uintptr_t RoundCount             = 0x30; // int (Total Rounds - Set to 1 for 1-Round Game)
+        constexpr uintptr_t GrenadePracticeType    = 0x34; // bool
+    }
+}
+
+/*
+================================================================================
+HOST AUTOMATION STRATEGIES
+================================================================================
+
+1. INSTANT WIN STRATEGY (Defuse / CS:GO Mode):
+   a. Get GameController via AHEADDGADFHFEEE() [RVA: 0x8E14B4C].
+   b. Modify PhotonNetwork.room.CustomProperties via SetCustomProperties:
+      - Key "TrScore" or "CtScore" -> Set to winning threshold (e.g., 16).
+      - Key "WinTeam" -> Set to desired team (1 = TR, 2 = CT).
+      - Key "FinalWinTeam" -> Set to target winning team.
+   c. Raise GameController.GameFinishedEvent directly.
+
+2. TEAM DEATHMATCH / DEATHMATCH FAST WIN:
+   a. Read GameController[0xD0] -> GameModeSettings.
+   b. Write KillsWinCondition (0x2C) -> Set to 1.
+   c. Alternatively, set Room CustomProperty "Score" directly to max target value.
+
+3. INSTANT BOMB EXPLOSION (TR Win Shortcut):
+   a. Locate "Bomb" entity instance (PlantedBombController).
+   b. Hook or invoke SetTimerDirect [RVA: 0x8DE4C50] or modify TimerSafe (0xB4).
+   c. Setting timer value near 0.0001f triggers detonation and awards the round.
+
+NOTE ON ENCODED TYPES:
+SafeInt, SafeFloat, and SafeBool use internal XOR obfuscation. Writing raw memory 
+values directly will crash the game or corrupt state. Always pass values through 
+the internal `.Value` setters/getters or hook setter methods directly.
+================================================================================
+*/
